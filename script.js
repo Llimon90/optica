@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             // 2. Enviar al backend
-            const response = await fetch('consultas.php', {
+            const response = await fetch('backend/consultas.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

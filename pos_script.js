@@ -172,7 +172,7 @@ async function processSale() {
         };
 
         // Enviar al backend
-        const response = await fetch('ventas.php', {
+        const response = await fetch('backend/ventas.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

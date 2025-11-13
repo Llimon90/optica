@@ -29,7 +29,7 @@ async function generateReport() {
     }
 
     try {
-        const response = await fetch(`reportes.php?start_date=${startDate}&end_date=${endDate}`);
+        const response = await fetch(`backend/reportes.php?start_date=${startDate}&end_date=${endDate}`);
         
         if (!response.ok) {
             const errorData = await response.json();

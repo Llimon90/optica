@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function cargarHistorialPaciente(patientId) {
     try {
-        const response = await fetch(`consultas.php?patient_id=${patientId}`);
+        const response = await fetch(`backend/consultas.php?patient_id=${patientId}`);
         if (!response.ok) throw new Error('Error al cargar historial');
         
         const prescripciones = await response.json();
@@ -103,7 +103,7 @@ function cargarDatosAnteriores(consultaAnterior) {
 async function cargarConsultaAnterior(consultaId) {
     try {
         const patientId = document.getElementById('paciente').dataset.patientId;
-        const response = await fetch(`consultas.php?patient_id=${patientId}`);
+        const response = await fetch(`backend/consultas.php?patient_id=${patientId}`);
         if (!response.ok) throw new Error('Error al cargar consulta');
         
         const consultas = await response.json();
@@ -137,7 +137,7 @@ async function cargarConsultaAnterior(consultaId) {
 async function compararConActual(consultaId) {
     try {
         const patientId = document.getElementById('paciente').dataset.patientId;
-        const response = await fetch(`consultas.php?patient_id=${patientId}`);
+        const response = await fetch(`backend/consultas.php?patient_id=${patientId}`);
         if (!response.ok) throw new Error('Error al cargar consultas');
         
         const consultas = await response.json();
@@ -293,7 +293,7 @@ async function handleRecetaSubmit(event) {
         };
 
         // 2. Enviar al backend
-        const response = await fetch('consultas.php', {
+        const response = await fetch('backend/consultas.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
