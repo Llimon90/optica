@@ -90,7 +90,7 @@ async function addNewPatient(event) {
         };
 
         const response = await fetch('backend/pacientes.php', {
-            method: 'POST',
+            method: 'POST', 
             headers: {
                 'Content-Type': 'application/json',
             },
