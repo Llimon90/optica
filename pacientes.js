@@ -89,7 +89,7 @@ async function addNewPatient(event) {
             birth_date: fechaNac
         };
 
-        const response = await fetch('pacientes.php', {
+        const response = await fetch('backend/pacientes.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
