@@ -2,6 +2,8 @@ let orderItems = [];
 const IVA_RATE = 0.16; // 16% de IVA
 
 document.addEventListener('DOMContentLoaded', async () => {
+    console.log("✅ POS cargado - Inicializando...");
+    
     // Cargar select de pacientes en el POS
     await cargarSelectPacientesPOS();
     
@@ -11,10 +13,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     const patientId = urlParams.get('patientId');
     const patientName = urlParams.get('patientName');
     
+    console.log("Parámetros URL:", { consultaId, patientId, patientName });
+    
     if (patientId && patientName) {
+        // Establecer el paciente seleccionado
         document.getElementById('paciente_pos').value = patientId;
         document.getElementById('current_patient_name').textContent = patientName;
-        document.getElementById('current_receta').textContent = `Receta #${consultaId || 'Asociada'}`;
+        document.getElementById('current_receta').textContent = consultaId ? `Receta #${consultaId}` : 'Paciente desde consulta';
+        console.log("Paciente cargado desde consulta:", patientName);
     }
     
     // Inicializar cálculos
@@ -24,23 +30,39 @@ document.addEventListener('DOMContentLoaded', async () => {
     const paymentForm = document.getElementById('paymentForm');
     paymentForm.addEventListener('submit', function(event) {
         event.preventDefault();
+        console.log("Formulario de pago enviado");
         processSale();
     });
 
     // Cargar datos del inventario para autocompletar
     loadInventorySuggestions();
+    
+    console.log("✅ POS completamente inicializado");
 });
 
 async function cargarSelectPacientesPOS() {
     try {
+        console.log("🔄 Cargando lista de pacientes...");
         const response = await fetch('backend/pacientes.php');
-        if (!response.ok) throw new Error('Error al cargar pacientes');
+        
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status} ${response.statusText}`);
+        }
         
         const pacientes = await response.json();
+        console.log(`✅ ${pacientes.length} pacientes cargados`, pacientes);
+        
         const selectPaciente = document.getElementById('paciente_pos');
         
         // Limpiar opciones existentes
-        selectPaciente.innerHTML = '<option value="">Buscar paciente...</option>';
+        selectPaciente.innerHTML = '<option value="">Seleccionar paciente...</option>';
+        
+        // Verificar si hay pacientes
+        if (pacientes.length === 0) {
+            selectPaciente.innerHTML = '<option value="">No hay pacientes registrados</option>';
+            console.warn("⚠️ No hay pacientes registrados en el sistema");
+            return;
+        }
         
         // Agregar pacientes al select
         pacientes.forEach(paciente => {
@@ -51,28 +73,38 @@ async function cargarSelectPacientesPOS() {
             selectPaciente.appendChild(option);
         });
         
+        console.log("✅ Select de pacientes actualizado");
+        
     } catch (error) {
-        console.error('Error:', error);
-        showNotification('❌ Error al cargar lista de pacientes', 'error');
+        console.error('❌ Error al cargar lista de pacientes:', error);
+        showNotification('❌ Error al cargar lista de pacientes: ' + error.message, 'error');
+        
+        // Mostrar opción de error en el select
+        const selectPaciente = document.getElementById('paciente_pos');
+        selectPaciente.innerHTML = '<option value="">Error al cargar pacientes</option>';
     }
 }
 
-function buscarPacientePOS() {
+function seleccionarPaciente() {
     const selectPaciente = document.getElementById('paciente_pos');
     const pacienteId = selectPaciente.value;
-    const pacienteNombre = selectPaciente.options[selectPaciente.selectedIndex]?.dataset.patientName;
+    const optionSeleccionada = selectPaciente.options[selectPaciente.selectedIndex];
+    const pacienteNombre = optionSeleccionada.dataset.patientName || optionSeleccionada.textContent;
+    
+    console.log("Seleccionando paciente:", { pacienteId, pacienteNombre });
     
     if (pacienteId) {
         document.getElementById('current_patient_name').textContent = pacienteNombre;
         document.getElementById('current_receta').textContent = 'Paciente seleccionado';
-        showNotification(`✅ Paciente ${pacienteNombre} seleccionado`);
+        showNotification(`✅ Paciente "${pacienteNombre}" seleccionado`);
     } else {
-        showNotification('❌ Por favor, seleccione un paciente', 'error');
+        showNotification('❌ Por favor, seleccione un paciente de la lista', 'error');
     }
 }
 
-// ... (el resto del código de pos_script.js se mantiene igual)
 function loadInventorySuggestions() {
+    console.log("🔄 Cargando sugerencias de inventario...");
+    
     // Por ahora usamos datos locales, pero podrían venir del backend
     const inventory = [
         { sku: 'M001', nombre: 'Montura Classic Black', precio: 1200.00 },
@@ -95,8 +127,11 @@ function loadInventorySuggestions() {
         if (matches.length > 0) {
             // Podrías mostrar un dropdown con sugerencias aquí
             document.getElementById('item_price').value = matches[0].precio;
+            console.log("Sugerencia de precio:", matches[0].precio);
         }
     });
+    
+    console.log("✅ Sugerencias de inventario cargadas");
 }
 
 function addItem() {
@@ -107,6 +142,8 @@ function addItem() {
     const name = nameInput.value.trim();
     const price = Math.max(0, parseFloat(priceInput.value) || 0);
     const qty = Math.max(1, parseInt(qtyInput.value) || 1);
+
+    console.log("Añadiendo ítem:", { name, price, qty });
 
     if (name && price > 0 && qty > 0) {
         const total = price * qty;
@@ -132,6 +169,7 @@ function addItem() {
         updateTotals();
         
         showNotification(`✅ Ítem "${name}" añadido a la orden`);
+        console.log("Ítem añadido:", newItem);
 
     } else {
         showNotification('❌ Error: Ingrese nombre, precio y cantidad válidos', 'error');
@@ -169,6 +207,8 @@ function renderOrderTable() {
         deleteBtn.onclick = () => removeItem(item.id);
         deleteCell.appendChild(deleteBtn);
     });
+    
+    console.log("Tabla de órdenes actualizada:", orderItems.length, "ítems");
 }
 
 function removeItem(itemId) {
@@ -176,6 +216,7 @@ function removeItem(itemId) {
     renderOrderTable();
     updateTotals();
     showNotification('Ítem eliminado de la orden');
+    console.log("Ítem eliminado, ítems restantes:", orderItems.length);
 }
 
 function updateTotals() {
@@ -190,6 +231,8 @@ function updateTotals() {
     document.getElementById('subtotal_display').textContent = `$${subtotal.toFixed(2)}`;
     document.getElementById('tax_display').textContent = `$${taxAmount.toFixed(2)}`;
     document.getElementById('grand_total_display').textContent = `$${grandTotal.toFixed(2)}`;
+    
+    console.log("Totales actualizados:", { subtotal, discountAmount, taxAmount, grandTotal });
 }
 
 async function processSale() {
@@ -210,6 +253,16 @@ async function processSale() {
     const patientName = document.getElementById('current_patient_name').textContent;
     const paymentMethod = document.getElementById('payment_method').value;
 
+    console.log('Procesando venta con datos:', {
+        patientId,
+        patientName,
+        subtotal,
+        discountAmount,
+        grandTotal,
+        paymentMethod,
+        itemsCount: orderItems.length
+    });
+
     try {
         // Preparar datos para el backend
         const saleData = {
@@ -222,11 +275,11 @@ async function processSale() {
                 sku: item.sku,
                 qty: item.qty,
                 price: item.price,
-                name: item.name // Añadimos el nombre para productos personalizados
+                name: item.name
             }))
         };
 
-        console.log('Enviando datos al servidor:', saleData);
+        console.log('Enviando al servidor:', saleData);
 
         // Enviar al backend
         const response = await fetch('backend/ventas.php', {
@@ -237,16 +290,18 @@ async function processSale() {
             body: JSON.stringify(saleData)
         });
 
+        console.log('Respuesta del servidor - Status:', response.status);
+        
         // Verificar si la respuesta es JSON válido
         const responseText = await response.text();
-        console.log('Respuesta del servidor:', responseText);
+        console.log('Respuesta del servidor - Texto:', responseText);
 
         let result;
         try {
             result = JSON.parse(responseText);
         } catch (e) {
             console.error('Error parseando JSON:', e);
-            throw new Error(`El servidor respondió con un error: ${response.status} ${response.statusText}. Respuesta: ${responseText}`);
+            throw new Error(`El servidor respondió con un error: ${response.status}. Respuesta: ${responseText.substring(0, 100)}...`);
         }
 
         if (!response.ok) {
@@ -276,6 +331,8 @@ function resetPOS() {
     
     renderOrderTable();
     updateTotals();
+    
+    console.log("✅ POS reiniciado para nueva venta");
 }
 
 function printTicket(saleId = 'T' + Date.now().toString().slice(-6)) {
@@ -345,6 +402,8 @@ function printTicket(saleId = 'T' + Date.now().toString().slice(-6)) {
         printWindow.print();
         printWindow.close();
     }, 500);
+    
+    console.log("✅ Ticket impreso para venta:", saleId);
 }
 
 function showNotification(message, type = 'success') {
@@ -368,91 +427,6 @@ function showNotification(message, type = 'success') {
     setTimeout(() => {
         document.body.removeChild(notification);
     }, 3000);
-}
-
-async function processSale() {
-    if (orderItems.length === 0) {
-        showNotification('❌ No se puede procesar la venta. La orden está vacía.', 'error');
-        return;
-    }
-
-    const subtotal = orderItems.reduce((sum, item) => sum + item.total, 0);
-    const discountPercent = parseFloat(document.getElementById('discount_input').value) || 0;
-    const discountAmount = subtotal * (discountPercent / 100);
-    const subtotalAfterDiscount = subtotal - discountAmount;
-    const taxAmount = subtotalAfterDiscount * IVA_RATE;
-    const grandTotal = subtotalAfterDiscount + taxAmount;
-
-    const selectPaciente = document.getElementById('paciente_pos');
-    const patientId = selectPaciente.value;
-    const patientName = document.getElementById('current_patient_name').textContent;
-    const paymentMethod = document.getElementById('payment_method').value;
-
-    console.log('Datos de venta:', {
-        patientId,
-        patientName,
-        subtotal,
-        discountAmount,
-        grandTotal,
-        paymentMethod,
-        items: orderItems
-    });
-
-    try {
-        // Preparar datos para el backend
-        const saleData = {
-            patient_id: patientId ? parseInt(patientId) : null, // Puede ser null
-            subtotal: subtotal,
-            discount_amount: discountAmount,
-            total_net: grandTotal,
-            payment_method: paymentMethod,
-            items: orderItems.map(item => ({
-                sku: item.sku,
-                qty: item.qty,
-                price: item.price,
-                name: item.name
-            }))
-        };
-
-        console.log('Enviando al servidor:', saleData);
-
-        // Enviar al backend
-        const response = await fetch('backend/ventas.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(saleData)
-        });
-
-        console.log('Respuesta del servidor - Status:', response.status);
-        
-        // Verificar si la respuesta es JSON válido
-        const responseText = await response.text();
-        console.log('Respuesta del servidor - Texto:', responseText);
-
-        let result;
-        try {
-            result = JSON.parse(responseText);
-        } catch (e) {
-            console.error('Error parseando JSON:', e);
-            throw new Error(`El servidor respondió con un error: ${response.status}. Respuesta: ${responseText.substring(0, 100)}...`);
-        }
-
-        if (!response.ok) {
-            throw new Error(result.message || `Error del servidor: ${response.status}`);
-        }
-
-        showNotification(`✅ Venta procesada con éxito. Total: $${grandTotal.toFixed(2)}`);
-        
-        // Imprimir ticket
-        printTicket(result.sale_id);
-        
-        // Reiniciar el POS para una nueva venta
-        resetPOS();
-
-    } catch (error) {
-        console.error('Error completo:', error);
-        showNotification('❌ Error al procesar venta: ' + error.message, 'error');
-    }
+    
+    console.log("Notificación:", message);
 }

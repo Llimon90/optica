@@ -47,30 +47,28 @@
                     </div>
                     <div class="pos-section-body">
                         <!-- Información del Paciente -->
-                        <div class="patient-info">
-                            <h3 style="margin-bottom: var(--space-sm);">Información del Paciente</h3>
-                        <!-- En pos.html -->
-                            <div class="form-row">
-                                <label for="paciente_pos">Buscar Paciente:</label>
-                                <select id="paciente_pos" class="form-control">
-                                    <option value="">Buscar paciente...</option>
-                                        <!-- Las opciones se cargan dinámicamente -->
-                                </select>
-                                <button type="button" class="btn btn-secondary" onclick="buscarPacientePOS()">Seleccionar</button>
-                            </div>
-                                <button type="button" class="btn btn-secondary" onclick="buscarPacientePOS()">Buscar</button>
-                            </div>
-                            <div class="patient-meta">
-                                <div class="patient-meta-item">
-                                    <span class="material-icons">person</span>
-                                    <span>Paciente: <strong id="current_patient_name">-- Ninguno --</strong></span>
-                                </div>
-                                <div class="patient-meta-item">
-                                    <span class="material-icons">visibility</span>
-                                    <span>Receta: <strong id="current_receta">No asociada</strong></span>
-                                </div>
-                            </div>
-                        </div>
+<!-- En pos.html - Sección de Información del Paciente -->
+<div class="patient-info">
+    <h3 style="margin-bottom: var(--space-sm);">Información del Paciente</h3>
+    <div class="form-row">
+        <label for="paciente_pos">Seleccionar Paciente:</label>
+        <select id="paciente_pos" class="form-control">
+            <option value="">Cargando pacientes...</option>
+            <!-- Las opciones se cargan dinámicamente -->
+        </select>
+        <button type="button" class="btn btn-secondary" onclick="seleccionarPaciente()">Seleccionar</button>
+    </div>
+    <div class="patient-meta">
+        <div class="patient-meta-item">
+            <span class="material-icons">person</span>
+            <span>Paciente: <strong id="current_patient_name">-- Ninguno --</strong></span>
+        </div>
+        <div class="patient-meta-item">
+            <span class="material-icons">visibility</span>
+            <span>Receta: <strong id="current_receta">No asociada</strong></span>
+        </div>
+    </div>
+</div>
 
                         <!-- Añadir Ítems -->
                         <div class="card">
