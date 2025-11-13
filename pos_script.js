@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log("✅ POS cargado - Inicializando...");
     
     // Cargar select de pacientes en el POS
-    await cargarSelectPacientesPOS();
+    await cargarSelectPacientes();
     
     // Cargar paciente de la consulta si viene de consultas.html
     const urlParams = new URLSearchParams(window.location.search);
@@ -13,14 +13,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const patientId = urlParams.get('patientId');
     const patientName = urlParams.get('patientName');
     
-    console.log("Parámetros URL:", { consultaId, patientId, patientName });
-    
     if (patientId && patientName) {
-        // Establecer el paciente seleccionado
         document.getElementById('paciente_pos').value = patientId;
         document.getElementById('current_patient_name').textContent = patientName;
         document.getElementById('current_receta').textContent = consultaId ? `Receta #${consultaId}` : 'Paciente desde consulta';
-        console.log("Paciente cargado desde consulta:", patientName);
     }
     
     // Inicializar cálculos
@@ -30,37 +26,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     const paymentForm = document.getElementById('paymentForm');
     paymentForm.addEventListener('submit', function(event) {
         event.preventDefault();
-        console.log("Formulario de pago enviado");
         processSale();
     });
 
     // Cargar datos del inventario para autocompletar
     loadInventorySuggestions();
-    
-    console.log("✅ POS completamente inicializado");
 });
 
-async function cargarSelectPacientesPOS() {
+// FUNCIÓN CORREGIDA - Cargar pacientes en el select
+async function cargarSelectPacientes() {
     try {
-        console.log("🔄 Cargando lista de pacientes...");
+        console.log("🔄 Cargando pacientes desde backend...");
         const response = await fetch('backend/pacientes.php');
         
         if (!response.ok) {
-            throw new Error(`Error HTTP: ${response.status} ${response.statusText}`);
+            throw new Error(`Error HTTP: ${response.status}`);
         }
         
         const pacientes = await response.json();
-        console.log(`✅ ${pacientes.length} pacientes cargados`, pacientes);
-        
         const selectPaciente = document.getElementById('paciente_pos');
         
         // Limpiar opciones existentes
         selectPaciente.innerHTML = '<option value="">Seleccionar paciente...</option>';
         
         // Verificar si hay pacientes
-        if (pacientes.length === 0) {
+        if (!pacientes || pacientes.length === 0) {
             selectPaciente.innerHTML = '<option value="">No hay pacientes registrados</option>';
-            console.warn("⚠️ No hay pacientes registrados en el sistema");
+            console.warn("⚠️ No hay pacientes en la base de datos");
             return;
         }
         
@@ -68,44 +60,25 @@ async function cargarSelectPacientesPOS() {
         pacientes.forEach(paciente => {
             const option = document.createElement('option');
             option.value = paciente.id;
-            option.textContent = `${paciente.first_name} ${paciente.last_name} (ID: ${paciente.id})`;
-            option.dataset.patientName = `${paciente.first_name} ${paciente.last_name}`;
+            const nombreCompleto = `${paciente.first_name} ${paciente.last_name}`;
+            option.textContent = `${nombreCompleto} (ID: ${paciente.id})`;
+            option.dataset.patientName = nombreCompleto;
             selectPaciente.appendChild(option);
         });
         
-        console.log("✅ Select de pacientes actualizado");
+        console.log(`✅ ${pacientes.length} pacientes cargados en el select`);
         
     } catch (error) {
-        console.error('❌ Error al cargar lista de pacientes:', error);
-        showNotification('❌ Error al cargar lista de pacientes: ' + error.message, 'error');
+        console.error('❌ Error cargando pacientes:', error);
         
-        // Mostrar opción de error en el select
         const selectPaciente = document.getElementById('paciente_pos');
         selectPaciente.innerHTML = '<option value="">Error al cargar pacientes</option>';
-    }
-}
-
-function seleccionarPaciente() {
-    const selectPaciente = document.getElementById('paciente_pos');
-    const pacienteId = selectPaciente.value;
-    const optionSeleccionada = selectPaciente.options[selectPaciente.selectedIndex];
-    const pacienteNombre = optionSeleccionada.dataset.patientName || optionSeleccionada.textContent;
-    
-    console.log("Seleccionando paciente:", { pacienteId, pacienteNombre });
-    
-    if (pacienteId) {
-        document.getElementById('current_patient_name').textContent = pacienteNombre;
-        document.getElementById('current_receta').textContent = 'Paciente seleccionado';
-        showNotification(`✅ Paciente "${pacienteNombre}" seleccionado`);
-    } else {
-        showNotification('❌ Por favor, seleccione un paciente de la lista', 'error');
+        
+        showNotification('❌ Error al cargar lista de pacientes: ' + error.message, 'error');
     }
 }
 
 function loadInventorySuggestions() {
-    console.log("🔄 Cargando sugerencias de inventario...");
-    
-    // Por ahora usamos datos locales, pero podrían venir del backend
     const inventory = [
         { sku: 'M001', nombre: 'Montura Classic Black', precio: 1200.00 },
         { sku: 'L001', nombre: 'Lente Oftálmico Blue Light', precio: 800.00 },
@@ -125,13 +98,9 @@ function loadInventorySuggestions() {
         );
         
         if (matches.length > 0) {
-            // Podrías mostrar un dropdown con sugerencias aquí
             document.getElementById('item_price').value = matches[0].precio;
-            console.log("Sugerencia de precio:", matches[0].precio);
         }
     });
-    
-    console.log("✅ Sugerencias de inventario cargadas");
 }
 
 function addItem() {
@@ -143,8 +112,6 @@ function addItem() {
     const price = Math.max(0, parseFloat(priceInput.value) || 0);
     const qty = Math.max(1, parseInt(qtyInput.value) || 1);
 
-    console.log("Añadiendo ítem:", { name, price, qty });
-
     if (name && price > 0 && qty > 0) {
         const total = price * qty;
         
@@ -154,7 +121,7 @@ function addItem() {
             price: price,
             qty: qty,
             total: total,
-            sku: 'CUSTOM-' + Date.now() // SKU temporal para productos personalizados
+            sku: 'CUSTOM-' + Date.now()
         };
 
         orderItems.push(newItem);
@@ -169,7 +136,6 @@ function addItem() {
         updateTotals();
         
         showNotification(`✅ Ítem "${name}" añadido a la orden`);
-        console.log("Ítem añadido:", newItem);
 
     } else {
         showNotification('❌ Error: Ingrese nombre, precio y cantidad válidos', 'error');
@@ -207,8 +173,6 @@ function renderOrderTable() {
         deleteBtn.onclick = () => removeItem(item.id);
         deleteCell.appendChild(deleteBtn);
     });
-    
-    console.log("Tabla de órdenes actualizada:", orderItems.length, "ítems");
 }
 
 function removeItem(itemId) {
@@ -216,7 +180,6 @@ function removeItem(itemId) {
     renderOrderTable();
     updateTotals();
     showNotification('Ítem eliminado de la orden');
-    console.log("Ítem eliminado, ítems restantes:", orderItems.length);
 }
 
 function updateTotals() {
@@ -231,8 +194,6 @@ function updateTotals() {
     document.getElementById('subtotal_display').textContent = `$${subtotal.toFixed(2)}`;
     document.getElementById('tax_display').textContent = `$${taxAmount.toFixed(2)}`;
     document.getElementById('grand_total_display').textContent = `$${grandTotal.toFixed(2)}`;
-    
-    console.log("Totales actualizados:", { subtotal, discountAmount, taxAmount, grandTotal });
 }
 
 async function processSale() {
@@ -253,16 +214,6 @@ async function processSale() {
     const patientName = document.getElementById('current_patient_name').textContent;
     const paymentMethod = document.getElementById('payment_method').value;
 
-    console.log('Procesando venta con datos:', {
-        patientId,
-        patientName,
-        subtotal,
-        discountAmount,
-        grandTotal,
-        paymentMethod,
-        itemsCount: orderItems.length
-    });
-
     try {
         // Preparar datos para el backend
         const saleData = {
@@ -279,7 +230,7 @@ async function processSale() {
             }))
         };
 
-        console.log('Enviando al servidor:', saleData);
+        console.log('Enviando datos al servidor:', saleData);
 
         // Enviar al backend
         const response = await fetch('backend/ventas.php', {
@@ -290,18 +241,16 @@ async function processSale() {
             body: JSON.stringify(saleData)
         });
 
-        console.log('Respuesta del servidor - Status:', response.status);
-        
         // Verificar si la respuesta es JSON válido
         const responseText = await response.text();
-        console.log('Respuesta del servidor - Texto:', responseText);
+        console.log('Respuesta del servidor:', responseText);
 
         let result;
         try {
             result = JSON.parse(responseText);
         } catch (e) {
             console.error('Error parseando JSON:', e);
-            throw new Error(`El servidor respondió con un error: ${response.status}. Respuesta: ${responseText.substring(0, 100)}...`);
+            throw new Error(`El servidor respondió con un error: ${response.status}. Respuesta: ${responseText}`);
         }
 
         if (!response.ok) {
@@ -317,7 +266,7 @@ async function processSale() {
         resetPOS();
 
     } catch (error) {
-        console.error('Error completo:', error);
+        console.error('Error:', error);
         showNotification('❌ Error al procesar venta: ' + error.message, 'error');
     }
 }
@@ -331,8 +280,6 @@ function resetPOS() {
     
     renderOrderTable();
     updateTotals();
-    
-    console.log("✅ POS reiniciado para nueva venta");
 }
 
 function printTicket(saleId = 'T' + Date.now().toString().slice(-6)) {
@@ -402,8 +349,6 @@ function printTicket(saleId = 'T' + Date.now().toString().slice(-6)) {
         printWindow.print();
         printWindow.close();
     }, 500);
-    
-    console.log("✅ Ticket impreso para venta:", saleId);
 }
 
 function showNotification(message, type = 'success') {
@@ -427,6 +372,4 @@ function showNotification(message, type = 'success') {
     setTimeout(() => {
         document.body.removeChild(notification);
     }, 3000);
-    
-    console.log("Notificación:", message);
 }

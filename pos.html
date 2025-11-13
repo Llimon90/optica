@@ -47,28 +47,27 @@
                     </div>
                     <div class="pos-section-body">
                         <!-- Información del Paciente -->
-<!-- En pos.html - Sección de Información del Paciente -->
-<div class="patient-info">
-    <h3 style="margin-bottom: var(--space-sm);">Información del Paciente</h3>
-    <div class="form-row">
-        <label for="paciente_pos">Seleccionar Paciente:</label>
-        <select id="paciente_pos" class="form-control">
-            <option value="">Cargando pacientes...</option>
-            <!-- Las opciones se cargan dinámicamente -->
-        </select>
-        <button type="button" class="btn btn-secondary" onclick="seleccionarPaciente()">Seleccionar</button>
-    </div>
-    <div class="patient-meta">
-        <div class="patient-meta-item">
-            <span class="material-icons">person</span>
-            <span>Paciente: <strong id="current_patient_name">-- Ninguno --</strong></span>
-        </div>
-        <div class="patient-meta-item">
-            <span class="material-icons">visibility</span>
-            <span>Receta: <strong id="current_receta">No asociada</strong></span>
-        </div>
-    </div>
-</div>
+                        <div class="patient-info">
+                            <h3 style="margin-bottom: var(--space-sm);">Información del Paciente</h3>
+                            <div class="form-row">
+                                <label for="paciente_pos">Seleccionar Paciente:</label>
+                                <select id="paciente_pos" class="form-control">
+                                    <option value="">Cargando pacientes...</option>
+                                    <!-- Las opciones se cargan dinámicamente -->
+                                </select>
+                                <button type="button" class="btn btn-secondary" onclick="seleccionarPaciente()">Seleccionar</button>
+                            </div>
+                            <div class="patient-meta">
+                                <div class="patient-meta-item">
+                                    <span class="material-icons">person</span>
+                                    <span>Paciente: <strong id="current_patient_name">-- Ninguno --</strong></span>
+                                </div>
+                                <div class="patient-meta-item">
+                                    <span class="material-icons">visibility</span>
+                                    <span>Receta: <strong id="current_receta">No asociada</strong></span>
+                                </div>
+                            </div>
+                        </div>
 
                         <!-- Añadir Ítems -->
                         <div class="card">
@@ -187,18 +186,51 @@
         </div>
     </div>
 
-    <script src="pos_script.js?v=2"></script>
+    <script src="pos_script.js?v=3"></script>
     <script>
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             sidebar.classList.toggle('mobile-open');
         }
 
-        function buscarPacientePOS() {
-            alert('Funcionalidad de búsqueda de pacientes - Se abrirá modal de búsqueda');
-            // Simular selección de paciente
-            document.getElementById('current_patient_name').textContent = 'María López (ID: 1001)';
-            document.getElementById('current_receta').textContent = 'Receta #2025-001';
+        // FUNCIÓN CORREGIDA - debe llamarse seleccionarPaciente (no buscarPacientePOS)
+        function seleccionarPaciente() {
+            const selectPaciente = document.getElementById('paciente_pos');
+            const pacienteId = selectPaciente.value;
+            const pacienteNombre = selectPaciente.options[selectPaciente.selectedIndex]?.dataset.patientName || 
+                                 selectPaciente.options[selectPaciente.selectedIndex]?.textContent;
+            
+            if (pacienteId) {
+                document.getElementById('current_patient_name').textContent = pacienteNombre;
+                document.getElementById('current_receta').textContent = 'Paciente seleccionado';
+                showNotification(`✅ Paciente "${pacienteNombre}" seleccionado`);
+            } else {
+                showNotification('❌ Por favor, seleccione un paciente', 'error');
+            }
+        }
+
+        // Función showNotification para el script interno
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 20px;
+                background: ${type === 'error' ? '#ef4444' : '#10b981'};
+                color: white;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                z-index: 10000;
+                font-weight: 500;
+            `;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 3000);
         }
 
         window.addEventListener('resize', function() {
