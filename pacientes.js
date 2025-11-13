@@ -1,3 +1,5 @@
+let pacientesLista = [];
+
 document.addEventListener('DOMContentLoaded', () => {
     cargarPacientes();
     
@@ -21,6 +23,7 @@ async function cargarPacientes() {
         if (!response.ok) throw new Error('Error al cargar pacientes');
         
         const patients = await response.json();
+        pacientesLista = patients; // Guardar para usar en otros lugares
         renderPatientsTable(patients);
     } catch (error) {
         console.error('Error:', error);
@@ -90,7 +93,7 @@ async function addNewPatient(event) {
         };
 
         const response = await fetch('backend/pacientes.php', {
-            method: 'POST', 
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -203,6 +206,18 @@ function showNotification(message, type = 'success') {
     setTimeout(() => {
         document.body.removeChild(notification);
     }, 3000);
+}
+
+// Función para obtener la lista de pacientes (para usar en otros archivos)
+async function obtenerListaPacientes() {
+    try {
+        const response = await fetch('backend/pacientes.php');
+        if (!response.ok) throw new Error('Error al cargar pacientes');
+        return await response.json();
+    } catch (error) {
+        console.error('Error:', error);
+        return [];
+    }
 }
 
 // Funciones para el menú móvil

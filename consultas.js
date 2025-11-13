@@ -1,6 +1,9 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     // Inicializa la fecha con el día de hoy
     document.getElementById('fecha').value = new Date().toISOString().slice(0, 10);
+    
+    // Cargar select de pacientes
+    await cargarSelectPacientes();
     
     // Simular precarga de paciente si viene de pacientes.html
     const urlParams = new URLSearchParams(window.location.search);
@@ -8,8 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const patientName = urlParams.get('patientName');
     
     if (patientId && patientName) {
-        document.getElementById('paciente').value = `${patientName} (ID: ${patientId})`;
-        document.getElementById('paciente').dataset.patientId = patientId;
+        document.getElementById('paciente').value = patientId;
+        document.getElementById('paciente').dataset.patientName = patientName;
         
         // Cargar historial del paciente desde el backend
         cargarHistorialPaciente(patientId);
@@ -17,6 +20,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('recetaForm').addEventListener('submit', handleRecetaSubmit);
 });
+
+async function cargarSelectPacientes() {
+    try {
+        const response = await fetch('backend/pacientes.php');
+        if (!response.ok) throw new Error('Error al cargar pacientes');
+        
+        const pacientes = await response.json();
+        const selectPaciente = document.getElementById('paciente');
+        
+        // Limpiar opciones existentes
+        selectPaciente.innerHTML = '<option value="">Seleccionar paciente...</option>';
+        
+        // Agregar pacientes al select
+        pacientes.forEach(paciente => {
+            const option = document.createElement('option');
+            option.value = paciente.id;
+            option.textContent = `${paciente.first_name} ${paciente.last_name} (ID: ${paciente.id})`;
+            option.dataset.patientName = `${paciente.first_name} ${paciente.last_name}`;
+            selectPaciente.appendChild(option);
+        });
+        
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification('❌ Error al cargar lista de pacientes', 'error');
+    }
+}
 
 async function cargarHistorialPaciente(patientId) {
     try {
@@ -36,8 +65,14 @@ async function cargarHistorialPaciente(patientId) {
 }
 
 function mostrarHistorialPaciente(historial) {
+    // Eliminar historial existente si lo hay
+    const historialExistente = document.querySelector('.historial-container');
+    if (historialExistente) {
+        historialExistente.remove();
+    }
+
     const historialContainer = document.createElement('div');
-    historialContainer.className = 'card';
+    historialContainer.className = 'card historial-container';
     historialContainer.innerHTML = `
         <div class="card-header">
             <h3 class="card-title">
@@ -90,9 +125,15 @@ function mostrarHistorialPaciente(historial) {
 }
 
 function cargarDatosAnteriores(consultaAnterior) {
+    // Eliminar botón existente si lo hay
+    const botonExistente = document.querySelector('.btn-cargar-anterior');
+    if (botonExistente) {
+        botonExistente.remove();
+    }
+
     const loadButton = document.createElement('button');
     loadButton.type = 'button';
-    loadButton.className = 'btn btn-outline btn-sm';
+    loadButton.className = 'btn btn-outline btn-sm btn-cargar-anterior';
     loadButton.innerHTML = '<span class="material-icons">upload</span> Cargar datos de última consulta';
     loadButton.onclick = () => cargarConsultaAnterior(consultaAnterior.id);
     
@@ -102,7 +143,7 @@ function cargarDatosAnteriores(consultaAnterior) {
 
 async function cargarConsultaAnterior(consultaId) {
     try {
-        const patientId = document.getElementById('paciente').dataset.patientId;
+        const patientId = document.getElementById('paciente').value;
         const response = await fetch(`backend/consultas.php?patient_id=${patientId}`);
         if (!response.ok) throw new Error('Error al cargar consulta');
         
@@ -136,7 +177,7 @@ async function cargarConsultaAnterior(consultaId) {
 
 async function compararConActual(consultaId) {
     try {
-        const patientId = document.getElementById('paciente').dataset.patientId;
+        const patientId = document.getElementById('paciente').value;
         const response = await fetch(`backend/consultas.php?patient_id=${patientId}`);
         if (!response.ok) throw new Error('Error al cargar consultas');
         
@@ -263,11 +304,11 @@ function calcularEvolucion(diferencia, parametro) {
 async function handleRecetaSubmit(event) {
     event.preventDefault();
     
-    const pacienteField = document.getElementById('paciente');
-    const paciente = pacienteField.value;
-    const pacienteId = pacienteField.dataset.patientId;
+    const pacienteSelect = document.getElementById('paciente');
+    const pacienteId = pacienteSelect.value;
+    const pacienteNombre = pacienteSelect.options[pacienteSelect.selectedIndex]?.dataset.patientName;
     
-    if (!paciente || !pacienteId || paciente === 'Seleccionar paciente...') {
+    if (!pacienteId) {
         alert('❌ Por favor, seleccione un paciente antes de guardar.');
         return;
     }
@@ -313,7 +354,7 @@ async function handleRecetaSubmit(event) {
         // 3. Opción para ir al POS
         const irAPOS = confirm('¿Desea ir al Punto de Venta para procesar la venta?');
         if (irAPOS) {
-            window.location.href = 'pos.html?consultaId=' + result.id;
+            window.location.href = 'pos.html?consultaId=' + result.id + '&patientId=' + pacienteId + '&patientName=' + encodeURIComponent(pacienteNombre);
         }
 
     } catch (error) {
@@ -352,7 +393,8 @@ function showNotification(message, type = 'success') {
 
 // Función de impresión mejorada
 function printReceta() {
-    const paciente = document.getElementById('paciente').value;
+    const pacienteSelect = document.getElementById('paciente');
+    const pacienteNombre = pacienteSelect.options[pacienteSelect.selectedIndex]?.textContent || 'Paciente no seleccionado';
     const fecha = document.getElementById('fecha').value;
     const observaciones = document.getElementById('observaciones').value;
     const dp = document.getElementById('dp').value;
@@ -374,7 +416,7 @@ function printReceta() {
             <h2 style="text-align: center; color: #2563eb; border-bottom: 2px solid #2563eb; padding-bottom: 10px;">RECETA OPTOMÉTRICA - ÓPTICAFLOW</h2>
             
             <div style="margin-bottom: 15px;">
-                <strong>Paciente:</strong> ${paciente} <br>
+                <strong>Paciente:</strong> ${pacienteNombre} <br>
                 <strong>Fecha:</strong> ${fecha} <br>
                 <strong>Optometrista:</strong> Dr. Carlos Rodríguez
             </div>

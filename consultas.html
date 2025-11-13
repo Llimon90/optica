@@ -40,8 +40,14 @@
                 <fieldset>
                     <legend>Datos del Paciente y Consulta</legend>
                     <div class="form-row">
-                        <label for="paciente">Paciente:</label>
-                        <input type="text" id="paciente" class="form-control" value="Seleccionar paciente..." disabled>
+                        <!-- En consultas.html -->
+                        <div class="form-group">
+                            <label for="paciente" class="form-label">Paciente *</label>
+                                <select id="paciente" class="form-control" required>
+                                    <option value="">Seleccionar paciente...</option>
+                                    <!-- Las opciones se cargan dinámicamente -->
+                                </select>
+                            </div>
                         <button type="button" class="btn btn-secondary" onclick="buscarPaciente()">Buscar Paciente</button>
                     </div>
                     <div class="form-row">

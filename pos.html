@@ -49,9 +49,15 @@
                         <!-- Información del Paciente -->
                         <div class="patient-info">
                             <h3 style="margin-bottom: var(--space-sm);">Información del Paciente</h3>
+                        <!-- En pos.html -->
                             <div class="form-row">
                                 <label for="paciente_pos">Buscar Paciente:</label>
-                                <input type="text" id="paciente_pos" class="form-control" placeholder="Nombre o ID del paciente">
+                                <select id="paciente_pos" class="form-control">
+                                    <option value="">Buscar paciente...</option>
+                                        <!-- Las opciones se cargan dinámicamente -->
+                                </select>
+                                <button type="button" class="btn btn-secondary" onclick="buscarPacientePOS()">Seleccionar</button>
+                            </div>
                                 <button type="button" class="btn btn-secondary" onclick="buscarPacientePOS()">Buscar</button>
                             </div>
                             <div class="patient-meta">

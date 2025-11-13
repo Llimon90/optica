@@ -1,14 +1,20 @@
 let orderItems = [];
 const IVA_RATE = 0.16; // 16% de IVA
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // Cargar select de pacientes en el POS
+    await cargarSelectPacientesPOS();
+    
     // Cargar paciente de la consulta si viene de consultas.html
     const urlParams = new URLSearchParams(window.location.search);
     const consultaId = urlParams.get('consultaId');
+    const patientId = urlParams.get('patientId');
+    const patientName = urlParams.get('patientName');
     
-    if (consultaId) {
-        document.getElementById('current_patient_name').textContent = 'Paciente desde Consulta';
-        document.getElementById('current_receta').textContent = `Receta #${consultaId}`;
+    if (patientId && patientName) {
+        document.getElementById('paciente_pos').value = patientId;
+        document.getElementById('current_patient_name').textContent = patientName;
+        document.getElementById('current_receta').textContent = `Receta #${consultaId || 'Asociada'}`;
     }
     
     // Inicializar cálculos
@@ -25,6 +31,47 @@ document.addEventListener('DOMContentLoaded', () => {
     loadInventorySuggestions();
 });
 
+async function cargarSelectPacientesPOS() {
+    try {
+        const response = await fetch('backend/pacientes.php');
+        if (!response.ok) throw new Error('Error al cargar pacientes');
+        
+        const pacientes = await response.json();
+        const selectPaciente = document.getElementById('paciente_pos');
+        
+        // Limpiar opciones existentes
+        selectPaciente.innerHTML = '<option value="">Buscar paciente...</option>';
+        
+        // Agregar pacientes al select
+        pacientes.forEach(paciente => {
+            const option = document.createElement('option');
+            option.value = paciente.id;
+            option.textContent = `${paciente.first_name} ${paciente.last_name} (ID: ${paciente.id})`;
+            option.dataset.patientName = `${paciente.first_name} ${paciente.last_name}`;
+            selectPaciente.appendChild(option);
+        });
+        
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification('❌ Error al cargar lista de pacientes', 'error');
+    }
+}
+
+function buscarPacientePOS() {
+    const selectPaciente = document.getElementById('paciente_pos');
+    const pacienteId = selectPaciente.value;
+    const pacienteNombre = selectPaciente.options[selectPaciente.selectedIndex]?.dataset.patientName;
+    
+    if (pacienteId) {
+        document.getElementById('current_patient_name').textContent = pacienteNombre;
+        document.getElementById('current_receta').textContent = 'Paciente seleccionado';
+        showNotification(`✅ Paciente ${pacienteNombre} seleccionado`);
+    } else {
+        showNotification('❌ Por favor, seleccione un paciente', 'error');
+    }
+}
+
+// ... (el resto del código de pos_script.js se mantiene igual)
 function loadInventorySuggestions() {
     // Por ahora usamos datos locales, pero podrían venir del backend
     const inventory = [
@@ -70,7 +117,7 @@ function addItem() {
             price: price,
             qty: qty,
             total: total,
-            sku: 'CUSTOM-' + Date.now() // SKU temporal
+            sku: 'CUSTOM-' + Date.now() // SKU temporal para productos personalizados
         };
 
         orderItems.push(newItem);
@@ -151,25 +198,35 @@ async function processSale() {
         return;
     }
 
-    const grandTotal = parseFloat(document.getElementById('grand_total_display').textContent.replace('$', ''));
+    const subtotal = orderItems.reduce((sum, item) => sum + item.total, 0);
+    const discountPercent = parseFloat(document.getElementById('discount_input').value) || 0;
+    const discountAmount = subtotal * (discountPercent / 100);
+    const subtotalAfterDiscount = subtotal - discountAmount;
+    const taxAmount = subtotalAfterDiscount * IVA_RATE;
+    const grandTotal = subtotalAfterDiscount + taxAmount;
+
+    const selectPaciente = document.getElementById('paciente_pos');
+    const patientId = selectPaciente.value;
     const patientName = document.getElementById('current_patient_name').textContent;
     const paymentMethod = document.getElementById('payment_method').value;
-    const discountPercent = parseFloat(document.getElementById('discount_input').value) || 0;
 
     try {
         // Preparar datos para el backend
         const saleData = {
-            patient_id: null, // Podría venir de la consulta
-            subtotal: orderItems.reduce((sum, item) => sum + item.total, 0),
-            discount_amount: orderItems.reduce((sum, item) => sum + item.total, 0) * (discountPercent / 100),
+            patient_id: patientId ? parseInt(patientId) : null,
+            subtotal: subtotal,
+            discount_amount: discountAmount,
             total_net: grandTotal,
             payment_method: paymentMethod,
             items: orderItems.map(item => ({
                 sku: item.sku,
                 qty: item.qty,
-                price: item.price
+                price: item.price,
+                name: item.name // Añadimos el nombre para productos personalizados
             }))
         };
+
+        console.log('Enviando datos al servidor:', saleData);
 
         // Enviar al backend
         const response = await fetch('backend/ventas.php', {
@@ -180,13 +237,22 @@ async function processSale() {
             body: JSON.stringify(saleData)
         });
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'Error del servidor');
+        // Verificar si la respuesta es JSON válido
+        const responseText = await response.text();
+        console.log('Respuesta del servidor:', responseText);
+
+        let result;
+        try {
+            result = JSON.parse(responseText);
+        } catch (e) {
+            console.error('Error parseando JSON:', e);
+            throw new Error(`El servidor respondió con un error: ${response.status} ${response.statusText}. Respuesta: ${responseText}`);
         }
 
-        const result = await response.json();
-        
+        if (!response.ok) {
+            throw new Error(result.message || `Error del servidor: ${response.status}`);
+        }
+
         showNotification(`✅ Venta procesada con éxito. Total: $${grandTotal.toFixed(2)}`);
         
         // Imprimir ticket
@@ -196,7 +262,7 @@ async function processSale() {
         resetPOS();
 
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error completo:', error);
         showNotification('❌ Error al procesar venta: ' + error.message, 'error');
     }
 }
@@ -204,6 +270,7 @@ async function processSale() {
 function resetPOS() {
     orderItems = [];
     document.getElementById('discount_input').value = '0';
+    document.getElementById('paciente_pos').value = '';
     document.getElementById('current_patient_name').textContent = '-- Ninguno --';
     document.getElementById('current_receta').textContent = 'No asociada';
     
