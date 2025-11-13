@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generación de Receta - ÓpticaFlow MVP</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">ÓpticaFlow</div>
+        <a href="#">👤 Pacientes</a>
+        <a href="#" class="active">👁️ Consultas</a>
+        <a href="#">👓 Inventario</a>
+        <a href="#">💰 Punto de Venta</a>
+    </div>
+
+    <div class="main-content">
+        <h1>Generación de Nueva Receta</h1>
+        
+        <form id="recetaForm">
+            <fieldset>
+                <legend>Datos del Paciente y Consulta</legend>
+                <div class="form-row">
+                    <label for="paciente">Paciente Seleccionado:</label>
+                    <input type="text" id="paciente" value="Juan Pérez (ID: 123)" disabled>
+                </div>
+                <div class="form-row">
+                    <label for="fecha">Fecha de Consulta:</label>
+                    <input type="date" id="fecha" value="2025-11-10">
+                </div>
+                <div class="form-row observations">
+                    <label for="observaciones">Observaciones:</label>
+                    <textarea id="observaciones" rows="3" placeholder="Notas sobre el estado de salud visual..."></textarea>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Datos de Refracción (Lejos y Cerca)</legend>
+                <table class="refraccion-table">
+                    <thead>
+                        <tr>
+                            <th>Ojo</th>
+                            <th>Esfera (Sph)</th>
+                            <th>Cilindro (Cyl)</th>
+                            <th>Eje (Axis)</th>
+                            <th>Adición (Add)</th>
+                            <th>AV (Agudeza Visual)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>**OD (Derecho)**</td>
+                            <td><input type="text" name="od_esfera" placeholder="Ej: -2.00"></td>
+                            <td><input type="text" name="od_cilindro" placeholder="Ej: -0.50"></td>
+                            <td><input type="number" name="od_eje" min="0" max="180" placeholder="0 - 180"></td>
+                            <td><input type="text" name="od_adicion" placeholder="Ej: +1.50"></td>
+                            <td><input type="text" name="od_av" placeholder="20/20"></td>
+                        </tr>
+                        <tr>
+                            <td>**OI (Izquierdo)**</td>
+                            <td><input type="text" name="oi_esfera" placeholder="Ej: -2.25"></td>
+                            <td><input type="text" name="oi_cilindro" placeholder="Ej: -0.75"></td>
+                            <td><input type="number" name="oi_eje" min="0" max="180" placeholder="0 - 180"></td>
+                            <td><input type="text" name="oi_adicion" placeholder="Ej: +1.50"></td>
+                            <td><input type="text" name="oi_av" placeholder="20/25"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </fieldset>
+
+            <fieldset class="additional-data">
+                <legend>Datos Adicionales</legend>
+                <div class="form-row half-width">
+                    <label for="dp">Distancia Interpupilar (DP):</label>
+                    <input type="text" id="dp" placeholder="Ej: 64 mm">
+                </div>
+            </fieldset>
+
+            <div class="action-buttons">
+                <button type="button" class="btn btn-secondary">Guardar Borrador</button>
+                <button type="submit" class="btn btn-primary">Finalizar Consulta y Generar Receta</button>
+                <button type="button" class="btn btn-print" onclick="printReceta()">Imprimir Receta</button>
+            </div>
+        </form>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

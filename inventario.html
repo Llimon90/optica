@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario - ÓpticaFlow</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <button class="mobile-menu-btn d-none" onclick="toggleSidebar()">
+        <span class="material-icons">menu</span>
+    </button>
+
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="logo-icon">OF</div>
+                <span class="logo-text">ÓpticaFlow</span>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="pacientes.html"><span class="material-icons">person</span> <span>Pacientes</span></a>
+            <a href="consultas.html"><span class="material-icons">visibility</span> <span>Consultas</span></a>
+            <a href="inventario.html" class="active"><span class="material-icons">inventory_2</span> <span>Inventario</span></a>
+            <a href="pos.html"><span class="material-icons">point_of_sale</span> <span>Punto de Venta</span></a>
+            <a href="reportes.html"><span class="material-icons">analytics</span> <span>Reportes</span></a>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">👓 Gestión de Inventario</h1>
+            <p class="page-subtitle">Administre productos, monturas, lentes y servicios</p>
+        </div>
+
+        <div class="page-content">
+            <div class="card">
+                <div class="card-header d-flex justify-between align-center">
+                    <div class="filters-box d-flex gap-2 align-center">
+                        <input type="text" id="filterSku" class="form-control" placeholder="Buscar por SKU o Marca...">
+                        <select id="filterTipo" class="form-control" style="width: 180px;">
+                            <option value="">Todos los Tipos</option>
+                            <option value="Montura">Monturas</option>
+                            <option value="Lente">Lentes Oftálmicos</option>
+                            <option value="Servicio">Servicios</option>
+                        </select>
+                        <select id="filterStock" class="form-control" style="width: 180px;">
+                            <option value="">Todo el Stock</option>
+                            <option value="Bajo">Stock Bajo (< 10)</option>
+                            <option value="Agotado">Agotado (0)</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="openNewProductModal()">
+                        <span class="material-icons">add</span> Nuevo Producto
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>SKU</th>
+                                    <th>Nombre</th>
+                                    <th>Marca</th>
+                                    <th>Tipo</th>
+                                    <th>Stock</th>
+                                    <th>Precio</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventoryTableBody">
+                                <!-- Los productos se cargan aquí -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Nuevo Producto -->
+    <div id="newProductModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeNewProductModal()">&times;</span>
+            <h2 style="margin-bottom: var(--space-md);">Registrar Nuevo Producto</h2>
+            <form id="newProductForm">
+                <div class="form-group">
+                    <label class="form-label">SKU:</label>
+                    <input type="text" id="prod_sku" class="form-control" required placeholder="Código único del producto">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nombre:</label>
+                    <input type="text" id="prod_nombre" class="form-control" required placeholder="Nombre del producto">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Marca:</label>
+                    <input type="text" id="prod_marca" class="form-control" placeholder="Marca del producto">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tipo:</label>
+                    <select id="prod_tipo" class="form-control">
+                        <option value="Montura">Montura</option>
+                        <option value="Lente">Lente Oftálmico</option>
+                        <option value="Servicio">Servicio</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Stock:</label>
+                    <input type="number" id="prod_stock" class="form-control" min="0" required value="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Precio Venta:</label>
+                    <input type="number" id="prod_precio" class="form-control" min="0" step="0.01" required placeholder="0.00">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeNewProductModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Producto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="inventario.js"></script>
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('mobile-open');
+        }
+
+        function closeNewProductModal() {
+            document.getElementById('newProductModal').style.display = 'none';
+        }
+
+        window.addEventListener('resize', function() {
+            const mobileBtn = document.querySelector('.mobile-menu-btn');
+            if (window.innerWidth <= 640) {
+                mobileBtn.classList.remove('d-none');
+            } else {
+                mobileBtn.classList.add('d-none');
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            window.dispatchEvent(new Event('resize'));
+        });
+    </script>
+</body>
+</html>

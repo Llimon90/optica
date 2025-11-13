@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nueva Consulta - ÓpticaFlow</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <button class="mobile-menu-btn d-none" onclick="toggleSidebar()">
+        <span class="material-icons">menu</span>
+    </button>
+
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="logo-icon">OF</div>
+                <span class="logo-text">ÓpticaFlow</span>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="pacientes.html"><span class="material-icons">person</span> <span>Pacientes</span></a>
+            <a href="consultas.html" class="active"><span class="material-icons">visibility</span> <span>Consultas</span></a>
+            <a href="inventario.html"><span class="material-icons">inventory_2</span> <span>Inventario</span></a>
+            <a href="pos.html"><span class="material-icons">point_of_sale</span> <span>Punto de Venta</span></a>
+            <a href="reportes.html"><span class="material-icons">analytics</span> <span>Reportes</span></a>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">👁️ Nueva Consulta y Receta</h1>
+            <p class="page-subtitle">Complete los datos de la consulta óptica</p>
+        </div>
+
+        <div class="page-content">
+            <form id="recetaForm" class="form-container">
+                <fieldset>
+                    <legend>Datos del Paciente y Consulta</legend>
+                    <div class="form-row">
+                        <label for="paciente">Paciente:</label>
+                        <input type="text" id="paciente" class="form-control" value="Seleccionar paciente..." disabled>
+                        <button type="button" class="btn btn-secondary" onclick="buscarPaciente()">Buscar Paciente</button>
+                    </div>
+                    <div class="form-row">
+                        <label for="fecha">Fecha de Consulta:</label>
+                        <input type="date" id="fecha" class="form-control" required>
+                    </div>
+                </fieldset>
+
+                <fieldset>
+                    <legend>Datos de Refracción (Lejos y Cerca)</legend>
+                    <div class="table-container">
+                        <table class="refraccion-table">
+                            <thead>
+                                <tr>
+                                    <th>Ojo</th>
+                                    <th>Esfera (Sph)</th>
+                                    <th>Cilindro (Cyl)</th>
+                                    <th>Eje (Axis)</th>
+                                    <th>Adición (Add)</th>
+                                    <th>AV (Agudeza Visual)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="font-weight: bold;">OD (Derecho)</td>
+                                    <td><input type="text" name="od_esfera" placeholder="-0.00" class="form-control"></td>
+                                    <td><input type="text" name="od_cilindro" placeholder="-0.00" class="form-control"></td>
+                                    <td><input type="number" name="od_eje" min="0" max="180" placeholder="0-180" class="form-control"></td>
+                                    <td><input type="text" name="od_adicion" placeholder="+0.00" class="form-control"></td>
+                                    <td><input type="text" name="od_av" placeholder="20/20" class="form-control"></td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: bold;">OI (Izquierdo)</td>
+                                    <td><input type="text" name="oi_esfera" placeholder="-0.00" class="form-control"></td>
+                                    <td><input type="text" name="oi_cilindro" placeholder="-0.00" class="form-control"></td>
+                                    <td><input type="number" name="oi_eje" min="0" max="180" placeholder="0-180" class="form-control"></td>
+                                    <td><input type="text" name="oi_adicion" placeholder="+0.00" class="form-control"></td>
+                                    <td><input type="text" name="oi_av" placeholder="20/20" class="form-control"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </fieldset>
+
+                <fieldset>
+                    <legend>Medidas y Observaciones</legend>
+                    <div class="form-row">
+                        <label for="dp">Distancia Interpupilar (DP):</label>
+                        <input type="text" id="dp" class="form-control" placeholder="Ej: 64 mm">
+                    </div>
+                    <div class="form-row" style="align-items: flex-start;">
+                        <label for="observaciones">Observaciones:</label>
+                        <textarea id="observaciones" rows="3" class="form-control" placeholder="Diagnóstico, tratamientos, notas especiales..."></textarea>
+                    </div>
+                </fieldset>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary">Guardar Borrador</button>
+                    <button type="submit" class="btn btn-primary">Finalizar Consulta y Guardar</button>
+                    <button type="button" class="btn btn-warning" onclick="printReceta()">Imprimir Receta</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="consultas.js"></script>
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('mobile-open');
+        }
+
+        function buscarPaciente() {
+            alert('Funcionalidad de búsqueda de pacientes - Se integrará con el módulo de pacientes');
+            // En una implementación real, esto abriría un modal para buscar pacientes
+        }
+
+        // Mostrar botón de menú en móviles
+        window.addEventListener('resize', function() {
+            const mobileBtn = document.querySelector('.mobile-menu-btn');
+            if (window.innerWidth <= 640) {
+                mobileBtn.classList.remove('d-none');
+            } else {
+                mobileBtn.classList.add('d-none');
+            }
+        });
+
+        // Ejecutar al cargar
+        document.addEventListener('DOMContentLoaded', function() {
+            window.dispatchEvent(new Event('resize'));
+        });
+    </script>
+</body>
+</html>

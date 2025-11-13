@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Punto de Venta - ÓpticaFlow</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <button class="mobile-menu-btn d-none" onclick="toggleSidebar()">
+        <span class="material-icons">menu</span>
+    </button>
+
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="logo-icon">OF</div>
+                <span class="logo-text">ÓpticaFlow</span>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="pacientes.html"><span class="material-icons">person</span> <span>Pacientes</span></a>
+            <a href="consultas.html"><span class="material-icons">visibility</span> <span>Consultas</span></a>
+            <a href="inventario.html"><span class="material-icons">inventory_2</span> <span>Inventario</span></a>
+            <a href="pos.html" class="active"><span class="material-icons">point_of_sale</span> <span>Punto de Venta</span></a>
+            <a href="reportes.html"><span class="material-icons">analytics</span> <span>Reportes</span></a>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">💰 Punto de Venta</h1>
+            <p class="page-subtitle">Procese ventas y emita tickets de forma rápida</p>
+        </div>
+
+        <div class="page-content">
+            <div class="pos-grid">
+                <!-- Sección de entrada de datos -->
+                <div class="pos-section">
+                    <div class="pos-section-header">
+                        <h2 class="pos-section-title">
+                            <span class="material-icons">shopping_cart</span>
+                            Detalles de la Venta
+                        </h2>
+                    </div>
+                    <div class="pos-section-body">
+                        <!-- Información del Paciente -->
+                        <div class="patient-info">
+                            <h3 style="margin-bottom: var(--space-sm);">Información del Paciente</h3>
+                            <div class="form-row">
+                                <label for="paciente_pos">Buscar Paciente:</label>
+                                <input type="text" id="paciente_pos" class="form-control" placeholder="Nombre o ID del paciente">
+                                <button type="button" class="btn btn-secondary" onclick="buscarPacientePOS()">Buscar</button>
+                            </div>
+                            <div class="patient-meta">
+                                <div class="patient-meta-item">
+                                    <span class="material-icons">person</span>
+                                    <span>Paciente: <strong id="current_patient_name">-- Ninguno --</strong></span>
+                                </div>
+                                <div class="patient-meta-item">
+                                    <span class="material-icons">visibility</span>
+                                    <span>Receta: <strong id="current_receta">No asociada</strong></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Añadir Ítems -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">
+                                    <span class="material-icons">add_circle</span>
+                                    Añadir Ítem (Producto o Servicio)
+                                </h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-group">
+                                    <label class="form-label">Ítem:</label>
+                                    <input type="text" id="item_name" class="form-control" placeholder="Nombre/Código de Montura, Lente, Servicio">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Precio Unitario:</label>
+                                    <input type="number" id="item_price" class="form-control" value="0.00" min="0" step="0.01">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Cantidad:</label>
+                                    <input type="number" id="item_qty" class="form-control" value="1" min="1">
+                                </div>
+                                <button type="button" class="btn btn-primary btn-block" onclick="addItem()">
+                                    <span class="material-icons">add_shopping_cart</span>
+                                    Añadir a la Orden
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección de resumen y pago -->
+                <div class="pos-section">
+                    <div class="pos-section-header">
+                        <h2 class="pos-section-title">
+                            <span class="material-icons">receipt</span>
+                            Orden y Cobro
+                        </h2>
+                    </div>
+                    <div class="pos-section-body">
+                        <!-- Tabla de órdenes -->
+                        <div class="table-container">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Ítem</th>
+                                        <th>Cant.</th>
+                                        <th>Precio</th>
+                                        <th>Total</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="order_items_body">
+                                    <!-- Los ítems de la orden se cargan aquí -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Totales -->
+                        <div class="totals-section">
+                            <div class="total-row">
+                                <span>Subtotal:</span>
+                                <span id="subtotal_display">$0.00</span>
+                            </div>
+                            <div class="total-row">
+                                <span>Descuento (%):</span>
+                                <div class="d-flex align-center gap-1">
+                                    <input type="number" id="discount_input" class="form-control" value="0" min="0" max="100" style="width: 80px;" oninput="updateTotals()">
+                                    <span>%</span>
+                                </div>
+                            </div>
+                            <div class="total-row tax-row">
+                                <span>Impuestos (IVA 16%):</span>
+                                <span id="tax_display">$0.00</span>
+                            </div>
+                            <div class="total-row grand-total">
+                                <span>TOTAL A PAGAR:</span>
+                                <span id="grand_total_display">$0.00</span>
+                            </div>
+                        </div>
+
+                        <!-- Sección de pago -->
+                        <form id="paymentForm">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">
+                                        <span class="material-icons">payment</span>
+                                        Finalizar Transacción
+                                    </h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-group">
+                                        <label class="form-label">Método de Pago:</label>
+                                        <select id="payment_method" class="form-control">
+                                            <option value="efectivo">Efectivo</option>
+                                            <option value="tarjeta">Tarjeta de Crédito/Débito</option>
+                                            <option value="transferencia">Transferencia Electrónica</option>
+                                            <option value="cheque">Cheque</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-success btn-block btn-lg">
+                                        <span class="material-icons">check_circle</span>
+                                        Procesar Venta y Emitir Factura
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+
+                        <button type="button" class="btn btn-warning btn-block" onclick="printTicket()">
+                            <span class="material-icons">print</span>
+                            Imprimir Último Ticket
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="pos_script.js"></script>
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('mobile-open');
+        }
+
+        function buscarPacientePOS() {
+            alert('Funcionalidad de búsqueda de pacientes - Se abrirá modal de búsqueda');
+            // Simular selección de paciente
+            document.getElementById('current_patient_name').textContent = 'María López (ID: 1001)';
+            document.getElementById('current_receta').textContent = 'Receta #2025-001';
+        }
+
+        window.addEventListener('resize', function() {
+            const mobileBtn = document.querySelector('.mobile-menu-btn');
+            if (window.innerWidth <= 640) {
+                mobileBtn.classList.remove('d-none');
+            } else {
+                mobileBtn.classList.add('d-none');
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            window.dispatchEvent(new Event('resize'));
+        });
+    </script>
+</body>
+</html>

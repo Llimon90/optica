@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pacientes - ÓpticaFlow</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <button class="mobile-menu-btn d-none" onclick="toggleSidebar()">
+        <span class="material-icons">menu</span>
+    </button>
+
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="logo-icon">OF</div>
+                <span class="logo-text">ÓpticaFlow</span>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="pacientes.html" class="active"><span class="material-icons">person</span> <span>Pacientes</span></a>
+            <a href="consultas.html"><span class="material-icons">visibility</span> <span>Consultas</span></a>
+            <a href="inventario.html"><span class="material-icons">inventory_2</span> <span>Inventario</span></a>
+            <a href="pos.html"><span class="material-icons">point_of_sale</span> <span>Punto de Venta</span></a>
+            <a href="reportes.html"><span class="material-icons">analytics</span> <span>Reportes</span></a>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">👤 Gestión de Pacientes</h1>
+            <p class="page-subtitle">Administre el registro de pacientes de la óptica</p>
+        </div>
+
+        <div class="page-content">
+            <div class="card">
+                <div class="card-header d-flex justify-between align-center">
+                    <div class="search-box d-flex gap-2 align-center">
+                        <input type="text" id="searchInput" class="form-control" placeholder="Buscar por Nombre, ID o Teléfono..." style="width: 300px;">
+                        <button class="btn btn-secondary" onclick="searchPatients()">Buscar</button>
+                    </div>
+                    <button class="btn btn-primary" onclick="openNewPatientModal()">
+                        <span class="material-icons">add</span> Nuevo Paciente
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre Completo</th>
+                                    <th>Teléfono</th>
+                                    <th>Última Visita</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="patientsTableBody">
+                                <!-- Los pacientes se cargan aquí -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Nuevo Paciente -->
+    <div id="newPatientModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeNewPatientModal()">&times;</span>
+            <h2 style="margin-bottom: var(--space-md);">Registrar Nuevo Paciente</h2>
+            <form id="newPatientForm">
+                <div class="form-group">
+                    <label class="form-label">Nombre:</label>
+                    <input type="text" id="p_nombre" class="form-control" required placeholder="Nombre del paciente">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Apellido:</label>
+                    <input type="text" id="p_apellido" class="form-control" required placeholder="Apellido del paciente">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Teléfono:</label>
+                    <input type="text" id="p_telefono" class="form-control" placeholder="Número de teléfono">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Fecha de Nacimiento:</label>
+                    <input type="date" id="p_fecha_nac" class="form-control">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeNewPatientModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Paciente</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="pacientes.js"></script>
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('mobile-open');
+        }
+
+        function closeNewPatientModal() {
+            document.getElementById('newPatientModal').style.display = 'none';
+        }
+
+        window.addEventListener('resize', function() {
+            const mobileBtn = document.querySelector('.mobile-menu-btn');
+            if (window.innerWidth <= 640) {
+                mobileBtn.classList.remove('d-none');
+            } else {
+                mobileBtn.classList.add('d-none');
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            window.dispatchEvent(new Event('resize'));
+        });
+    </script>
+</body>
+</html>

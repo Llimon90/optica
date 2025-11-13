@@ -1,0 +1,195 @@
+/* Estilos Específicos del POS */
+.pos-grid {
+    display: grid;
+    grid-template-columns: 2fr 1.3fr;
+    gap: 40px;
+    align-items: start;
+}
+
+.pos-input-area, .pos-summary-area {
+    padding: 30px;
+    background: var(--white);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+}
+
+.pos-summary-area {
+    background: linear-gradient(135deg, #E8F5E9, #F1F8E9);
+    border: 1px solid #A5D6A7;
+    position: sticky;
+    top: 40px;
+}
+
+.pos-input-area h2, .pos-summary-area h2 {
+    color: #34495E;
+    font-size: 1.8em;
+    margin-bottom: 25px;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 15px;
+}
+
+.section-box {
+    margin-bottom: 30px;
+    padding: 25px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    background: var(--white);
+    transition: var(--transition);
+}
+
+.section-box:hover {
+    border-color: #B0BEC5;
+}
+
+.section-box h3 {
+    margin-top: 0;
+    color: #546E7A;
+    font-size: 1.3em;
+    margin-bottom: 20px;
+}
+
+/* Formularios del POS */
+.pos-input-area .form-row {
+    margin-bottom: 18px;
+}
+
+.pos-input-area .form-row label {
+    flex: 0 0 120px;
+    font-weight: 500;
+    color: #495057;
+}
+
+/* Información de Paciente */
+.current-patient {
+    font-size: 1.1em;
+    margin: 12px 0;
+    color: #555;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    background: #F8F9FA;
+    border-radius: var(--border-radius);
+    border-left: 4px solid var(--primary-color);
+}
+
+.current-patient span {
+    font-weight: 600;
+    color: var(--primary-dark);
+}
+
+.current-patient.receta span {
+    color: #3F51B5;
+}
+
+/* Tabla de la Orden */
+.order-table-container {
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.order-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--white);
+}
+
+.order-table th, .order-table td {
+    border: 1px solid var(--border-color);
+    padding: 15px 12px;
+    text-align: center;
+    font-size: 0.95em;
+}
+
+.order-table th {
+    background: linear-gradient(135deg, #546E7A, #455A64);
+    color: var(--white);
+    font-weight: 600;
+}
+
+.order-table tbody tr:hover {
+    background-color: #F5F5F5;
+}
+
+.order-table .btn-delete {
+    background: none;
+    border: none;
+    color: var(--danger-color);
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1.2em;
+    transition: var(--transition);
+    padding: 5px;
+    border-radius: 4px;
+}
+
+.order-table .btn-delete:hover {
+    color: var(--danger-dark);
+    background: rgba(231, 76, 60, 0.1);
+}
+
+/* Totales */
+.totals-box {
+    margin-top: 30px;
+    padding: 25px;
+    background: linear-gradient(135deg, #F5F5F5, #FAFAFA);
+    border-radius: var(--border-radius);
+    border: 2px solid #E0E0E0;
+}
+
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    font-size: 1.1em;
+    color: #34495E;
+    border-bottom: 1px solid #E0E0E0;
+}
+
+.total-row.grand-total {
+    font-size: 1.8em;
+    font-weight: 700;
+    color: var(--primary-dark);
+    border-top: 2px dashed #B0BEC5;
+    margin-top: 20px;
+    padding-top: 20px;
+}
+
+/* Sección de Pago */
+.payment-section {
+    margin-top: 35px;
+    padding-top: 25px;
+    border-top: 2px solid #CFD8DC;
+}
+
+.btn-finish {
+    width: 100%;
+    padding: 20px;
+    margin-top: 20px;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: var(--white);
+    font-size: 1.4em;
+    font-weight: 700;
+    letter-spacing: 1px;
+    border-radius: var(--border-radius);
+}
+
+.btn-finish:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(76, 175, 80, 0.3);
+}
+
+/* Responsive POS */
+@media (max-width: 1200px) {
+    .pos-grid {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+    
+    .pos-summary-area {
+        position: static;
+    }
+}

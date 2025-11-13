@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes - ÓpticaFlow</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <button class="mobile-menu-btn d-none" onclick="toggleSidebar()">
+        <span class="material-icons">menu</span>
+    </button>
+
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="logo-icon">OF</div>
+                <span class="logo-text">ÓpticaFlow</span>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="pacientes.html"><span class="material-icons">person</span> <span>Pacientes</span></a>
+            <a href="consultas.html"><span class="material-icons">visibility</span> <span>Consultas</span></a>
+            <a href="inventario.html"><span class="material-icons">inventory_2</span> <span>Inventario</span></a>
+            <a href="pos.html"><span class="material-icons">point_of_sale</span> <span>Punto de Venta</span></a>
+            <a href="reportes.html" class="active"><span class="material-icons">analytics</span> <span>Reportes</span></a>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">📈 Reportes y Analíticas</h1>
+            <p class="page-subtitle">Analice el desempeño de ventas y métricas del negocio</p>
+        </div>
+
+        <div class="page-content">
+            <!-- Filtros -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <span class="material-icons">filter_alt</span>
+                        Filtro de Período
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="form-row">
+                        <label for="startDate">Desde:</label>
+                        <input type="date" id="startDate" class="form-control">
+                        <label for="endDate">Hasta:</label>
+                        <input type="date" id="endDate" class="form-control">
+                    </div>
+                    <div class="form-row" style="margin-top: var(--space-md);">
+                        <button class="btn btn-secondary" onclick="setPeriod('week')">Última Semana</button>
+                        <button class="btn btn-secondary" onclick="setPeriod('month')">Último Mes</button>
+                        <button class="btn btn-secondary" onclick="setPeriod('year')">Último Año</button>
+                        <button class="btn btn-primary" onclick="generateReport()">Generar Reporte</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resultados del Reporte -->
+            <div id="reportResults" style="display: none;">
+                <h2>Resumen de Ventas (<span id="periodDisplay">Período Seleccionado</span>)</h2>
+                
+                <div class="report-grid">
+                    <div class="report-card">
+                        <h3>Ventas Netas Totales</h3>
+                        <p id="totalVentas">$0.00</p>
+                    </div>
+                    <div class="report-card" style="border-left-color: var(--accent-color);">
+                        <h3>Número de Transacciones</h3>
+                        <p id="totalTransacciones">0</p>
+                    </div>
+                    <div class="report-card" style="border-left-color: var(--success-color);">
+                        <h3>Ticket Promedio</h3>
+                        <p id="ticketPromedio">$0.00</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <span class="material-icons">list_alt</span>
+                            Detalle de Transacciones
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Transacción ID</th>
+                                        <th>Paciente</th>
+                                        <th>Total Bruto</th>
+                                        <th>Descuento</th>
+                                        <th>Total Neto</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="transactionsBody">
+                                    <!-- Las transacciones se cargan aquí -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="reportes.js"></script>
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('mobile-open');
+        }
+
+        window.addEventListener('resize', function() {
+            const mobileBtn = document.querySelector('.mobile-menu-btn');
+            if (window.innerWidth <= 640) {
+                mobileBtn.classList.remove('d-none');
+            } else {
+                mobileBtn.classList.add('d-none');
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            window.dispatchEvent(new Event('resize'));
+        });
+    </script>
+</body>
+</html>
