@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function cargarPacientes() {
     try {
-        const response = await fetch('pacientes.php');
+        const response = await fetch('backend/pacientes.php');
         if (!response.ok) throw new Error('Error al cargar pacientes');
         
         const patients = await response.json();
@@ -121,7 +121,7 @@ async function searchPatients() {
     const input = document.getElementById('searchInput').value.toLowerCase();
     
     try {
-        const response = await fetch('pacientes.php');
+        const response = await fetch('backend/pacientes.php');
         if (!response.ok) throw new Error('Error al buscar pacientes');
         
         const allPatients = await response.json();
@@ -140,13 +140,13 @@ async function searchPatients() {
 async function viewHistory(id) {
     try {
         // Cargar información del paciente
-        const patientResponse = await fetch(`pacientes.php/${id}`);
+        const patientResponse = await fetch(`backend/pacientes.php/${id}`);
         if (!patientResponse.ok) throw new Error('Error al cargar paciente');
         
         const patient = await patientResponse.json();
         
         // Cargar recetas del paciente
-        const prescriptionsResponse = await fetch(`consultas.php?patient_id=${id}`);
+        const prescriptionsResponse = await fetch(`backend/consultas.php?patient_id=${id}`);
         const prescriptions = prescriptionsResponse.ok ? await prescriptionsResponse.json() : [];
         
         const totalConsultas = prescriptions.length;
