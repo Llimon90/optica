@@ -369,3 +369,90 @@ function showNotification(message, type = 'success') {
         document.body.removeChild(notification);
     }, 3000);
 }
+
+async function processSale() {
+    if (orderItems.length === 0) {
+        showNotification('❌ No se puede procesar la venta. La orden está vacía.', 'error');
+        return;
+    }
+
+    const subtotal = orderItems.reduce((sum, item) => sum + item.total, 0);
+    const discountPercent = parseFloat(document.getElementById('discount_input').value) || 0;
+    const discountAmount = subtotal * (discountPercent / 100);
+    const subtotalAfterDiscount = subtotal - discountAmount;
+    const taxAmount = subtotalAfterDiscount * IVA_RATE;
+    const grandTotal = subtotalAfterDiscount + taxAmount;
+
+    const selectPaciente = document.getElementById('paciente_pos');
+    const patientId = selectPaciente.value;
+    const patientName = document.getElementById('current_patient_name').textContent;
+    const paymentMethod = document.getElementById('payment_method').value;
+
+    console.log('Datos de venta:', {
+        patientId,
+        patientName,
+        subtotal,
+        discountAmount,
+        grandTotal,
+        paymentMethod,
+        items: orderItems
+    });
+
+    try {
+        // Preparar datos para el backend
+        const saleData = {
+            patient_id: patientId ? parseInt(patientId) : null, // Puede ser null
+            subtotal: subtotal,
+            discount_amount: discountAmount,
+            total_net: grandTotal,
+            payment_method: paymentMethod,
+            items: orderItems.map(item => ({
+                sku: item.sku,
+                qty: item.qty,
+                price: item.price,
+                name: item.name
+            }))
+        };
+
+        console.log('Enviando al servidor:', saleData);
+
+        // Enviar al backend
+        const response = await fetch('backend/ventas.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(saleData)
+        });
+
+        console.log('Respuesta del servidor - Status:', response.status);
+        
+        // Verificar si la respuesta es JSON válido
+        const responseText = await response.text();
+        console.log('Respuesta del servidor - Texto:', responseText);
+
+        let result;
+        try {
+            result = JSON.parse(responseText);
+        } catch (e) {
+            console.error('Error parseando JSON:', e);
+            throw new Error(`El servidor respondió con un error: ${response.status}. Respuesta: ${responseText.substring(0, 100)}...`);
+        }
+
+        if (!response.ok) {
+            throw new Error(result.message || `Error del servidor: ${response.status}`);
+        }
+
+        showNotification(`✅ Venta procesada con éxito. Total: $${grandTotal.toFixed(2)}`);
+        
+        // Imprimir ticket
+        printTicket(result.sale_id);
+        
+        // Reiniciar el POS para una nueva venta
+        resetPOS();
+
+    } catch (error) {
+        console.error('Error completo:', error);
+        showNotification('❌ Error al procesar venta: ' + error.message, 'error');
+    }
+}
