@@ -11,17 +11,12 @@ if ($method == 'POST') {
     
     $data = json_decode($input, true);
     
-    // Log para debugging
-    error_log("Datos recibidos en ventas.php: " . print_r($data, true));
-    
     if (!$data || json_last_error() !== JSON_ERROR_NONE) {
-        error_log("JSON decode error: " . json_last_error_msg());
         sendJsonResponse(array("message" => "Datos JSON inválidos: " . json_last_error_msg()), 400);
     }
     
     // Validar datos requeridos
     if (!isset($data['subtotal']) || !isset($data['total_net']) || !isset($data['payment_method']) || !isset($data['items'])) {
-        error_log("Datos faltantes en la solicitud");
         sendJsonResponse(array("message" => "Datos incompletos: subtotal, total_net, payment_method e items son requeridos"), 400);
     }
     
@@ -29,8 +24,22 @@ if ($method == 'POST') {
     $conn->begin_transaction();
     
     try {
-        // user_id debe venir de la sesión o ser simulado (ej: 1)
-        $userId = 1; 
+        // Verificar que existe al menos un usuario
+        $userCheck = $conn->query("SELECT id FROM Users LIMIT 1");
+        if ($userCheck->num_rows === 0) {
+            // Crear usuario por defecto si no existe
+            $createUser = $conn->query("INSERT INTO Users (email, password_hash, role, first_name, last_name) 
+                                      VALUES ('sistema@opticaflow.com', '" . password_hash('temp123', PASSWORD_DEFAULT) . "', 'Vendedor', 'Sistema', 'Automático')");
+            if (!$createUser) {
+                throw new Exception("No hay usuarios en el sistema y no se pudo crear uno automáticamente");
+            }
+            $userId = $conn->insert_id;
+        } else {
+            // Usar el primer usuario disponible
+            $userResult = $userCheck->fetch_assoc();
+            $userId = $userResult['id'];
+        }
+        
         $patientId = isset($data['patient_id']) && $data['patient_id'] !== null && $data['patient_id'] !== '' ? $data['patient_id'] : null;
 
         $sqlSale = "INSERT INTO Sales (patient_id, user_id, subtotal, discount_amount, total_net, payment_method) 
@@ -43,15 +52,14 @@ if ($method == 'POST') {
 
         // Manejar patient_id NULL correctamente
         if ($patientId === null) {
-            // Para NULL, necesitamos usar un tipo diferente en bind_param
             $null = null;
             $stmtSale->bind_param("idddds", 
-                $null, $userId, $data['subtotal'], $data['discount_amount'], 
+                $null, $userId, $data['subtotal'], $data['discount_amount'] ?? 0, 
                 $data['total_net'], $data['payment_method']
             );
         } else {
             $stmtSale->bind_param("idddds", 
-                $patientId, $userId, $data['subtotal'], $data['discount_amount'], 
+                $patientId, $userId, $data['subtotal'], $data['discount_amount'] ?? 0, 
                 $data['total_net'], $data['payment_method']
             );
         }
@@ -60,7 +68,7 @@ if ($method == 'POST') {
             throw new Exception("Error al registrar venta: " . $stmtSale->error);
         }
         $saleId = $conn->insert_id;
-        error_log("Venta registrada con ID: " . $saleId);
+        error_log("Venta registrada con ID: " . $saleId . " por usuario: " . $userId);
 
         // --- 2. Insertar Detalle y Actualizar Stock ---
         foreach ($data['items'] as $item) {
